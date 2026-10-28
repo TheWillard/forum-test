@@ -1,0 +1,49 @@
+# Local test setup. The production file is kept as docker-compose.prod.yml.
+services:
+  redis:
+    container_name: redis
+    image: redis:8.2.4
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  nodebb:
+    container_name: forum
+    image: ghcr.io/nodebb/nodebb:4.8.1
+    depends_on:
+      - redis
+    restart: unless-stopped
+    ports:
+      - "4567:4567"
+    volumes:
+      - data:/usr/src/app/public/uploads
+      - config:/opt/config
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "3"
+        max-size: "50m"
+    environment:
+      # First start (no config.json yet) runs an unattended `nodebb setup`,
+      # the container then restarts and boots the forum normally.
+      NODEBB_INIT_VERB: setup
+      NODEBB_URL: http://localhost:4567
+      NODEBB_DB: redis
+      NODEBB_DB_HOST: redis
+      NODEBB_DB_PORT: "6379"
+      NODEBB_ADMIN_USERNAME: admin
+      NODEBB_ADMIN_EMAIL: admin@example.com
+      NODEBB_ADMIN_PASSWORD: ${NODEBB_ADMIN_PASSWORD}
+      # Activated on setup in addition to NodeBB's built-in defaults
+      defaultPlugins: >-
+        ["@gruppe-adler/nodebb-plugin-sso-steam-v2",
+        "@nodebb/nodebb-plugin-reactions",
+        "nodebb-plugin-2factor",
+        "nodebb-plugin-discord-notification-adler",
+        "nodebb-plugin-link-preview",
+        "nodebb-plugin-spam-be-gone"]
+
+volumes:
+  data:
+  config:
+  redis-data:

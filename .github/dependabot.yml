@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Image tags in docker-compose*.yml (redis, nodebb)
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
